@@ -42,7 +42,7 @@ class MealTableViewController: UITableViewController {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        print("Memory warnings received")
     }
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -75,7 +75,7 @@ class MealTableViewController: UITableViewController {
             saveMeals()
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
         } else if editingStyle == .Insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+            print("Insert not implemented")
         }    
     }
     
@@ -93,17 +93,19 @@ class MealTableViewController: UITableViewController {
     }
     
     @IBAction func unwindToMealList(sender: UIStoryboardSegue) {
-        if let sourceViewController = sender.sourceViewController as? MealViewController, meal = sourceViewController.meal {
-            if let selectedIndexPath = tableView.indexPathForSelectedRow {
-                meals[selectedIndexPath.row] = meal
-                tableView.reloadRowsAtIndexPaths([selectedIndexPath], withRowAnimation: .None)
-            } else {
-                let newIndexPath = NSIndexPath(forRow: meals.count, inSection: 0)
-                meals.append(meal)
-                tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Bottom)
-            }
-            saveMeals()
+        guard let sourceViewController = sender.sourceViewController as? MealViewController, meal = sourceViewController.meal else {
+            return
         }
+        
+        if let selectedIndexPath = tableView.indexPathForSelectedRow {
+            meals[selectedIndexPath.row] = meal
+            tableView.reloadRowsAtIndexPaths([selectedIndexPath], withRowAnimation: .None)
+        } else {
+            let newIndexPath = NSIndexPath(forRow: meals.count, inSection: 0)
+            meals.append(meal)
+            tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Bottom)
+        }
+        saveMeals()
     }
     
     func saveMeals() {

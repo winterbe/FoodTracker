@@ -14,7 +14,15 @@ class MealTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadSampleMeals()
+        
+        if let savedMeals = loadMeals() {
+            meals += savedMeals
+        }
+        
+        if meals.isEmpty {
+            loadSampleMeals()
+        }
+        
         navigationItem.leftBarButtonItem = editButtonItem()
     }
     
@@ -56,14 +64,6 @@ class MealTableViewController: UITableViewController {
 
         return cell
     }
-    
-    @IBAction func unwindToMealList(sender: UIStoryboardSegue) {
-        if let sourceViewController = sender.sourceViewController as? MealViewController, meal = sourceViewController.meal {
-            let newIndexPath = NSIndexPath(forRow: meals.count, inSection: 0)
-            meals.append(meal)
-            tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Bottom)
-        }
-    }
 
     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
         return true
@@ -72,10 +72,49 @@ class MealTableViewController: UITableViewController {
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
             meals.removeAtIndex(indexPath.row)
+            saveMeals()
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
         } else if editingStyle == .Insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
         }    
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "ShowDetail" {
+            let mealDetailViewController = segue.destinationViewController as! MealViewController
+            if let selectedMealCell = sender as? MealTableViewCell {
+                let indexPath = tableView.indexPathForCell(selectedMealCell)!
+                let selectedMeal = meals[indexPath.row]
+                mealDetailViewController.meal = selectedMeal
+            }
+        } else if segue.identifier == "AddItem" {
+            print("Adding new meal")
+        }
+    }
+    
+    @IBAction func unwindToMealList(sender: UIStoryboardSegue) {
+        if let sourceViewController = sender.sourceViewController as? MealViewController, meal = sourceViewController.meal {
+            if let selectedIndexPath = tableView.indexPathForSelectedRow {
+                meals[selectedIndexPath.row] = meal
+                tableView.reloadRowsAtIndexPaths([selectedIndexPath], withRowAnimation: .None)
+            } else {
+                let newIndexPath = NSIndexPath(forRow: meals.count, inSection: 0)
+                meals.append(meal)
+                tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Bottom)
+            }
+            saveMeals()
+        }
+    }
+    
+    func saveMeals() {
+        let isSuccessfulSave = NSKeyedArchiver.archiveRootObject(meals, toFile: Meal.ArchiveURL.path!)
+        if !isSuccessfulSave {
+            print("Failed to save meals...")
+        }
+    }
+    
+    func loadMeals() -> [Meal]? {
+        return NSKeyedUnarchiver.unarchiveObjectWithFile(Meal.ArchiveURL.path!) as? [Meal]
     }
 
     /*
@@ -90,16 +129,6 @@ class MealTableViewController: UITableViewController {
     override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
         // Return false if you do not want the item to be re-orderable.
         return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
     }
     */
 

@@ -49,7 +49,7 @@ class Meal: NSObject, NSCoding {
     func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(name, forKey: PropertyKey.nameKey)
         aCoder.encodeObject(photo, forKey: PropertyKey.photoKey)
-        aCoder.encodeObject(name, forKey: PropertyKey.nameKey)
+        aCoder.encodeInteger(rating, forKey: PropertyKey.ratingKey)
     }
     
 }
